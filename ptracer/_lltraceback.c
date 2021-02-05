@@ -39,6 +39,15 @@
 #  define PYSTRING_CHECK PyString_Check
 #endif
 
+#if PY_MAJOR_VERSION < 3 || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 7)
+#  define PYTHREADSTATE_GETFRAME _PyThreadState_GetFrame
+#elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 9
+#  include "pystate.h"
+#  define PYTHREADSTATE_GETFRAME _PyThreadState_GetFrame
+#else
+#  define PYTHREADSTATE_GETFRAME PyThreadState_GetFrame
+#endif
+
 
 static long
 _portable_gettid(void)
@@ -300,7 +309,7 @@ dump_traceback(int fd, PyThreadState *tstate)
     int depth;
 
     if (tstate != NULL) {
-        top_frame = _PyThreadState_GetFrame(tstate);
+        top_frame = PYTHREADSTATE_GETFRAME(tstate);
     }
 
     if (top_frame == NULL) {
